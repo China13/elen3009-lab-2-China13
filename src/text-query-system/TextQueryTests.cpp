@@ -3,6 +3,8 @@
 #include "Paragraph.h"
 #include "FileReader.h"
 
+#include <tuple>
+
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 
@@ -109,33 +111,55 @@ TEST_CASE("Word which is not queryable cannot be found") {
 
 // ------------- Tests for Paragraph ----------------
 
-//TEST_CASE("Word cannot be found in empty Paragraph") {
-//}
-//
-//TEST_CASE("Word not present in Paragraph cannot be found") {
-//}
-//
-//TEST_CASE("Line number of a Word appearing once in Paragraph is returned") {
-//}
-//
-//TEST_CASE("Line numbers of a Word appearing in multiple Lines of a Paragraph is returned") {
-//}
-//
-//TEST_CASE("Line numbers returned account for an empty Line") {
-//// If the first line of the paragraph is empty, and the word being searched for
-//// is on the second line, the vector returned should be: [2]
-//}
-//
-//// Integration test - both Paragraph and File Reader are tested together
-//TEST_CASE("File can be read into Paragraph and successfully searched") {
-//	// make sure that alice.txt is in the right location for this to work!
-//	// it must be in the same directory as the executable
-//	auto filereader = FileReader{"alice.txt"};
-//	auto paragraph = Paragraph{};
-//	filereader.readFileInto(paragraph);
-//
-//	auto[found, line_numbers] = paragraph.contains(Word{"Daddy"});
-//
-//	CHECK(found);
-//	CHECK(vector<int>{1,4,6} == line_numbers);
-//}
+TEST_CASE("Word cannot be found in empty Paragraph") {
+ Paragraph paragraph;
+ paragraph.addLine(Line{""});
+ CHECK_FALSE(get<0>(paragraph.contains(Word{"hello"})));
+}
+
+TEST_CASE("Word not present in Paragraph cannot be found") {
+    Paragraph paragraph;
+    paragraph.addLine(Line{"I have always wished for my computer to be as easy to use as my telephone."});
+	paragraph.addLine(Line{"my wish has come true because I can no longer figure out how to use my telephone."});
+	CHECK_FALSE(get<0>(paragraph.contains(Word{"cellphone"})));
+}
+
+TEST_CASE("Line number of a Word appearing once in Paragraph is returned") {
+    Paragraph paragraph;
+    paragraph.addLine(Line{"I have always wished for my computer to be as easy to use as my telephone."});
+	paragraph.addLine(Line{"my wish has come true because I can no longer figure out how to use my telephone."});
+	auto no_of_lines = vector<int>{2};
+	CHECK( get<1>(paragraph.contains(Word{"true"})) == no_of_lines);
+}
+
+TEST_CASE("Line numbers of a Word appearing in multiple Lines of a Paragraph is returned") {
+    Paragraph paragraph;
+    paragraph.addLine(Line{"I, Sibusile, true, have always wished for my computer to be as easy to use as my telephone."});
+	paragraph.addLine(Line{"my wish has come true because I can no longer figure out how to use my telephone."});
+	paragraph.addLine(Line{"I, Sibusile, I'm happy."});
+	auto no_of_lines = vector<int>{1,3};
+	CHECK( get<1>(paragraph.contains(Word{"Sibusile"})) == no_of_lines);
+}
+
+TEST_CASE("Line numbers returned account for an empty Line") {
+    Paragraph paragraph;
+    paragraph.addLine(Line{""});
+	paragraph.addLine(Line{"my wish has come true because I can no longer figure out how to use my telephone."});
+	paragraph.addLine(Line{"I, Sibusile, I'm happy."});
+	auto no_of_lines = vector<int>{2};
+	CHECK( get<1>(paragraph.contains(Word{"wish"})) == no_of_lines);
+}
+
+// Integration test - both Paragraph and File Reader are tested together
+TEST_CASE("File can be read into Paragraph and successfully searched") {
+	// make sure that alice.txt is in the right location for this to work!
+	// it must be in the same directory as the executable
+	auto filereader = FileReader{"alice.txt"};
+	auto paragraph = Paragraph{};
+	filereader.readFileInto(paragraph);
+
+	auto[found, line_numbers] = paragraph.contains(Word{"Daddy"});
+
+	CHECK(found);
+	CHECK(vector<int>{1,4,6} == line_numbers);
+}
