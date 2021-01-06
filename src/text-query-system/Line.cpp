@@ -6,11 +6,21 @@
 
 Line::Line(const string& line)
 {
-	// Hint: some of string's member functions might come in handy here
-	// for extracting words.
+
+    stringstream ss(line);
+    string Buf;
+
+    while (ss >> Buf)
+        words.push_back(Buf);
+
 }
 
 bool Line::contains(const Word& search_word) const
 {
-	return false;
+	for(auto word:words)
+    {
+        if((word == search_word)&&(search_word.isQueryable()== true))
+            return true;
+    }
+ return false;
 }
